@@ -1,0 +1,67 @@
+##[[
+linklib 'SDL2'
+]]
+
+require"string"
+require"math"
+require"io"
+require"sdl2"
+
+global Debug = true
+
+global Vec2d = @record{
+  x: float32, y: float32,
+}
+
+global function dprint(str:string)
+  if Debug then print(str) end
+end
+
+global function dwrite(str:string)
+  if Debug then io.write(str) end
+end
+
+global function sdlFailIf(cond:boolean, reason:string)
+  if not cond then
+    print(string.format("Error: (%s) :: %s\n", SDL_GetError(), reason))
+  end
+  return not cond
+end
+
+global function boolToInt(b:boolean): integer
+  if b then return 1 else return 0 end
+end
+
+global function getExeName(fullPathExe:string): string
+  local res, seqName = string.match(fullPathExe,"(.+)(%.exe)$")
+  if res then
+    return seqName[1]
+  else
+    return fullPathExe
+  end
+end
+
+--https://stackoverflow.com/questions/72386387/lua-split-string-to-table
+--function string:split(sep:string)
+--   local sep = sep or ","
+--   local result = {}
+--   local pattern = string.format("([^%s]+)", sep)
+--   local i = 1
+--   self:gsub(pattern, function (c) result[i] = c i = i + 1 end)
+--   return result
+--end
+--
+--local function split(str, sep, o)
+--   local o = o or {}
+--   local head, tail = str:match("([^"..sep.."]*)"..sep.."(.*)")
+--   if head and #head > 0 then table.insert(o, head) end
+--   if not tail then return o end
+--   return split(tail, sep, o)
+--end
+-- local path_table = split(dirname, "/")
+-- local path_str = table.concat(path_table, "/", 1, #path_table - 1)
+-- local filename = path_table[#path_table]
+
+global function clamp(x:float32, a:float32, b:float32)
+  return math.max(a, math.min(b, x))
+end

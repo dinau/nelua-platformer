@@ -1,0 +1,243 @@
+##[[
+linklib 'SDL2'
+linklib 'SDL2_image'
+]]
+
+require"sdl2"
+require"sdl2_image"
+require"utils"
+require"os"
+require"arg"
+require"string"
+require"vector"
+require"math"
+require"io"
+
+Debug = true  -- for dprint()
+
+local Input     = @enum{none = 0,left = 1, right = 2, jump = 3 , restart = 4, quit = 5}
+local Player = @record{
+    texture: *SDL_Texture,
+    pos: Vec2d,
+    vel: Vec2d
+}
+local Map = @record{
+    texture: *SDL_Texture,
+    width:cint, height: cint,
+    tiles: vector(uint8)
+}
+local Game = @record{
+    renderer: *SDL_Renderer,
+    inputs : [6]boolean,
+    player: Player,
+    map: Map,
+    camera: SDL_FPoint,
+}
+
+local TilesPerRow <comptime> = 16
+local TileSize    = Vec2d{64, 64}
+local WindowSize  = Vec2d{1280, 720}
+
+--------------
+--- renderTee
+--------------
+local renderTee = function(renderer: *SDL_Renderer, texture: *SDL_Texture, pos: Vec2d)
+  local x = pos.x
+  local y = pos.y
+  local TBodyParts = @record{ rect:SDL_Rect, frect:SDL_FRect, flip:cint }
+  local bodyParts: [8]TBodyParts = {
+    {SDL_Rect{192,64,64,32},  SDL_FRect{x-60,y   ,96,48} ,SDL_FLIP_NONE},       -- back feet shadow
+    {SDL_Rect{96 ,0 ,96,96},  SDL_FRect{x-48,y-48,96,96} ,SDL_FLIP_NONE},       -- body shadow
+    {SDL_Rect{192,64 ,64,32}, SDL_FRect{x-36,y   ,96,48} ,SDL_FLIP_NONE},       -- front feet shadow
+    {SDL_Rect{192,32 ,64,32}, SDL_FRect{x-60,y   ,96,48} ,SDL_FLIP_NONE},       -- back feet
+    {SDL_Rect{0  ,0  ,96,96}, SDL_FRect{x-48,y-48,96,96} ,SDL_FLIP_NONE},       -- body
+    {SDL_Rect{192,32 ,64,32}, SDL_FRect{x-36,y   ,96,48} ,SDL_FLIP_NONE},       -- front feet
+    {SDL_Rect{64 ,96 ,32,32}, SDL_FRect{x-18,y-21,36,36} ,SDL_FLIP_NONE},       -- left eye
+    {SDL_Rect{64 ,96 ,32,32}, SDL_FRect{x-6,y-21 ,36,36} ,SDL_FLIP_HORIZONTAL}, -- right eye
+  }
+  for _, v in ipairs(bodyParts) do
+    SDL_RenderCopyExF(renderer, texture
+                     ,v.rect ,v.frect
+                     ,0.0
+                     ,nilptr ,v.flip)
+  end
+end
+
+--------------
+--- renderMap
+--------------
+local renderMap = function(renderer: *SDL_Renderer, map:Map, camera:SDL_FPoint)
+  local clip = SDL_Rect{0, 0 ,TileSize.x ,TileSize.y}
+  local dest = SDL_Rect{0, 0 ,TileSize.x ,TileSize.y}
+  for i, tileNr in ipairs(map.tiles) do
+    if tileNr ~= 0 then
+      clip.x = (tileNr % TilesPerRow ) * TileSize.x
+      clip.y = math.floor(tileNr / TilesPerRow ) * TileSize.y
+      dest.x = (i % map.width) * TileSize.x - (@cint)(camera.x)
+      dest.y = math.floor(i / map.width) * TileSize.y - (@cint)(camera.y)
+
+      SDL_RenderCopy(renderer, map.texture, &clip, &dest)
+    end
+  end
+end
+
+-----------
+-- toInput
+-----------
+local toInput = function (key:integer)
+  local write = function(str:string)
+    dwrite(str)
+  end
+  write("\n")
+  if     key == SDL_SCANCODE_A or key == SDL_SCANCODE_H or key == SDL_SCANCODE_LEFT then write("LEFT: ") return Input.left
+  elseif key == SDL_SCANCODE_D or key == SDL_SCANCODE_L or key == SDL_SCANCODE_RIGHT then write("RIGHT: ") return Input.right
+  elseif key == SDL_SCANCODE_UP or key == SDL_SCANCODE_SPACE or key == SDL_SCANCODE_J or key == SDL_SCANCODE_K then write("JUMP: ") return Input.jump
+  elseif key == SDL_SCANCODE_R then write("Rstart: ") return Input.restart
+  elseif key == SDL_SCANCODE_Q then write("Quit: ") return Input.quit
+  else write("None: ") return Input.none
+  end
+end
+
+------------------
+--- restartPlayer
+------------------
+local restartPos = Vec2d{170, 500}    -- Initial pos
+local restartVel = Vec2d{0.0 , 0.0}   -- Initial vel
+
+function Player:restartPlayer()
+    self.pos =  restartPos
+    self.vel =  restartVel
+end
+
+--------------
+--- newPlayer   -- Player type
+--------------
+local newPlayer = function(texture: *SDL_Texture): Player
+  return Player{
+    texture = texture,
+    pos = restartPos,
+    vel = restartVel,
+  }
+end
+
+------------
+--- newMap     -- : Map type
+------------
+local newMap = function(texture: *SDL_Texture, file:string): Map
+  local result = Map{tiles = {}, texture = texture, width = 0,height = 0} -- Map type
+  for line in io.lines(file) do
+    local width = 0
+    for word in line:gmatchview('%w+')  do
+      if word ~= "" then
+        local value = tointeger(word)
+        if value > 255 then
+          print("Invalid value " .. word .. "in map " .. file)
+        end
+        result.tiles:push(value)
+        width = width + 1
+      end
+    end
+    if (result.width > 0) and (result.width ~= width) then
+      print("Incompatible line length in map " .. file)
+    end
+    result.width = width
+    result.height = result.height + 1
+  end
+  return result
+end
+
+------------
+--- newGame   -- Game type
+------------
+local newGame = function(renderer: *SDL_Renderer): Game
+  return Game{
+    renderer    = renderer,
+    inputs      = {false,false,false, false,false,false},
+    player      = newPlayer(IMG_LoadTexture(renderer, "player.png")),
+    map         = newMap(IMG_LoadTexture(renderer,"grass.png"), "default.map"),
+    camera      = SDL_FPoint{0,0},
+  }
+end
+
+--------------------
+-- Game:handleInput
+--------------------
+function Game:handleInput()
+  local event: SDL_Event
+  while SDL_PollEvent(event) ~= 0 do
+    local kind = event.type
+    if kind == SDL_QUIT then
+      self.inputs[Input.quit] = true
+    elseif kind == SDL_KEYDOWN then
+      self.inputs[toInput(event.key.keysym.scancode)] = true
+    elseif kind == SDL_KEYUP then
+      self.inputs[toInput(event.key.keysym.scancode)] = false
+    end
+  end
+end
+
+----------------
+--- Game:render
+----------------
+function Game:render()
+   SDL_RenderClear(self.renderer)
+   local p = Vec2d{self.player.pos.x - self.camera.x, self.player.pos.y - self.camera.y}
+   renderTee(self.renderer, self.player.texture, p)
+   renderMap(self.renderer, self.map, self.camera)
+   SDL_RenderPresent(self.renderer)
+end
+
+-----------------
+--- Game:destroy
+-----------------
+function Game:destroy()
+  self.map.tiles:destroy()
+end
+
+------------------
+--- Main function
+------------------
+local main = function()
+  if sdlFailIf(0 == SDL_Init(SDL_INIT_VIDEO + SDL_INIT_TIMER + SDL_INIT_EVENTS),
+    "SDL2 initialization failed") then os.exit(1) end
+  if sdlFailIf(SDL_TRUE == SDL_SetHint("SDL_RENDER_SCALE_QUALITY", "2"),
+     "Linear texture filtering could not be enabled") then os.exit(1) end
+
+  if sdlFailIf(0 ~= IMG_Init(IMG_INIT_PNG), "SDL2 Image initialization failed") then os.exit(1) end
+
+  local window = SDL_CreateWindow(string.format("%s:  [ %s ]","Our own 2D platformer written in NeLua",getExeName(arg[0])),
+      SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
+      WindowSize.x, WindowSize.y, SDL_WINDOW_SHOWN)
+  if sdlFailIf(0 ~= window,"Window could not be created") then os.exit(1) end
+
+  local renderer = SDL_CreateRenderer(window,-1,
+    SDL_RENDERER_ACCELERATED or SDL_RENDERER_PRESENTVSYNC)
+  if sdlFailIf(0 ~= renderer,"Renderer could not be created") then os.exit(1) end
+
+  SDL_SetRenderDrawColor(renderer,110,132,174,255)
+
+  local game = newGame(renderer)
+  defer game:destroy() end
+
+  --------------
+  --- Main loop
+  --------------
+  -- Game loop, draws each frame
+  while not game.inputs[Input.quit] do
+    game:handleInput()
+    game:render()
+  end
+
+  --------------
+  --- End procs
+  --------------
+  SDL_DestroyRenderer(renderer)
+  SDL_DestroyWindow(window)
+  IMG_Quit()
+  SDL_Quit()
+end
+
+---------
+--- main
+---------
+main()

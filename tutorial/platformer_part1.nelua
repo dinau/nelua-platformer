@@ -1,0 +1,56 @@
+##[[
+linklib 'SDL2'
+]]
+
+require"sdl2"
+require"utils"
+require"os"
+require"arg"
+require"string"
+
+local WindowSize  = Vec2d{1280, 720}
+
+------------------
+--- Main function
+------------------
+local main = function()
+  if sdlFailIf(0 == SDL_Init(SDL_INIT_VIDEO + SDL_INIT_TIMER + SDL_INIT_EVENTS),
+    "SDL2 initialization failed") then os.exit(1) end
+  if sdlFailIf(SDL_TRUE == SDL_SetHint("SDL_RENDER_SCALE_QUALITY", "2"),
+     "Linear texture filtering could not be enabled") then os.exit(1) end
+  local window = SDL_CreateWindow(string.format("%s:  [ %s ]","Our own 2D platformer written in NeLua",getExeName(arg[0])),
+      SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
+      WindowSize.x, WindowSize.y, SDL_WINDOW_SHOWN)
+  if sdlFailIf(0 ~= window,"Window could not be created") then os.exit(1) end
+
+  local renderer = SDL_CreateRenderer(window,-1,
+    SDL_RENDERER_ACCELERATED or SDL_RENDERER_PRESENTVSYNC)
+  if sdlFailIf(0 ~= renderer,"Renderer could not be created") then os.exit(1) end
+
+  SDL_SetRenderDrawColor(renderer,110,132,174,255)
+
+  local count = 5000
+
+  --------------
+  --- Main loop
+  --------------
+  -- Game loop, draws each frame
+  while count > 0 do
+    SDL_RenderClear(renderer)
+    SDL_RenderPresent(renderer)
+    count = count - 1
+  end
+  print("OK !")
+
+  --------------
+  --- End procs
+  --------------
+  SDL_DestroyRenderer(renderer)
+  SDL_DestroyWindow(window)
+  SDL_Quit()
+end
+
+---------
+--- main
+---------
+main()
