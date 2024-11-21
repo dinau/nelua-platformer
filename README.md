@@ -7,9 +7,11 @@
   - [Run tutorials](#run-tutorials)
   - [Key operation](#key-operation)
   - [Tutorial sources](#tutorial-sources)
-  - [SDL2 headers for Nelua](#sdl2-headers-for-nelua)
+  - [Other SDL2 headers for Nelua](#other-sdl2-headers-for-nelua)
   - [Tools version](#tools-version)
   - [Reference](#reference)
+  - [Other SDL game tutorial platfromer project](#other-sdl-game-tutorial-platfromer-project)
+  - [Other project](#other-project)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
@@ -17,7 +19,7 @@
 
 ---
 
-Writing a 2D Platform Game in [NeLua language](https://github.com/edubart/nelua-lang) with SDL2.
+Tutorial: Writing a 2D Platform Game in [NeLua language](https://github.com/edubart/nelua-lang) with SDL2.
 
 This repository has been inherited from
 [Nim-Platformer](https://github.com/def-/nim-platformer) and [LuaJIT-Platformer](https://github.com/dinau/luajit-platformer) project.
@@ -27,7 +29,7 @@ This repository has been inherited from
 
 Skin database [https://ddnet.org/skins](https://ddnet.org/skins)
 
-![alt](img/game.png)
+![alt](https://github.com/dinau/nelua-platformer/raw/main/img/game.png)
 
 #### Support OS
 
@@ -125,11 +127,11 @@ Windows10 or later
 [platformer_part8.nelua](tutorial/platformer_part8.nelua)  
 platformer_part9.nelua : In progress. TODO  
 
-#### SDL2 headers for Nelua
+#### Other SDL2 headers for Nelua
 
 ---
 
-The header files
+These header files
 
 ```sh
 sdl2.nelua  
@@ -137,8 +139,7 @@ sdl2_image.nelua
 sdl2_ttf.nelua   
 ```
 
-have been just copied form [sdl2 folder](https://github.com/edubart/nelua-decl/tree/main/libs/sdl2)
-of [nelua-decl libraries project](https://github.com/edubart/nelua-decl)
+have thankfully been just copied form [nelua-decl libraries project](https://github.com/edubart/nelua-decl).
 
 
 #### Tools version
@@ -158,3 +159,29 @@ of [nelua-decl libraries project](https://github.com/edubart/nelua-decl)
 - SDL2_image.dll  https://github.com/libsdl-org/SDL_image/releases/
 - SDL2_ttf.dll  https://github.com/libsdl-org/SDL_ttf/releases/
 - LuaJIT-SDL2  https://github.com/sonoro1234/LuaJIT-SDL2
+
+
+#### Other SDL game tutorial platfromer project
+
+---
+
+![ald](https://github.com/dinau/luajit-platformer/raw/main/img/game.png)
+
+| Language             |          | Project                                                            |
+| -------------------: | :---:    | :----------------------------------------------------------------: |
+| **Nim**              | Compiler | [Nim-Platformer](https://github.com/dinau/nim-platformer)          |
+| **LuaJIT**           | Script   | [LuaJIT-Platformer](https://github.com/dinau/luajit-platformer)    |
+| **Nelua**            | Compiler | [NeLua-Platformer](https://github.com/dinau/nelua-platformer)      |
+
+#### Other project
+
+---
+
+| Language             |          | Project                                                                                                                                         |
+| -------------------: | :---:    | :----------------------------------------------------------------:                                                                              |
+| **Nim**              | Compiler | [ImGuin](https://github.com/dinau/imguin), [Nimgl_test](https://github.com/dinau/nimgl_test), [Nim_implot](https://github.com/dinau/nim_implot) |
+| **Lua**              | Script   | [LuaJITImGui](https://github.com/dinau/luajitImGui)                                                                                             |
+| **Zig**, C lang.     | Compiler | [Dear_Bindings_Build](https://github.com/dinau/dear_bindings_build)                                                                             |
+| **Zig**              | Compiler | [ImGuinZ](https://github.com/dinau/imguinz)                                                                                                     |
+| **NeLua**            | Compiler | [NeLuaImGui](https://github.com/dinau/neluaImGui)                                                                                               |
+| **Python**           | Script   | [DearPyGui for 32bit WindowsOS Binary](https://github.com/dinau/DearPyGui32/tree/win32)                                                         |
