@@ -1,8 +1,3 @@
-##[[
-linklib 'SDL2'
-linklib 'SDL2_image'
-]]
-
 require"sdl2"
 require"sdl2_image"
 require"utils"
