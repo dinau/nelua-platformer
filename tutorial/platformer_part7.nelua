@@ -21,8 +21,8 @@ local Time = @record{
 }
 local Player = @record{
     texture: *SDL_Texture,
-    pos: Vec2d,
-    vel: Vec2d,
+    pos: Vec2f,
+    vel: Vec2f,
     time: Time,
 }
 local Map = @record{
@@ -39,9 +39,9 @@ local Game = @record{
 }
 
 local TilesPerRow <comptime> = 16
-local TileSize    = Vec2d{64, 64}
-local PlayerSize  = Vec2d{64, 64}
-local WindowSize  = Vec2d{1280, 720}
+local TileSize    = Vec2f{64, 64}
+local PlayerSize  = Vec2f{64, 64}
+local WindowSize  = Vec2f{1280, 720}
 
 local air    <comptime> =   0
 local start  <comptime> =  78
@@ -54,7 +54,7 @@ local InnerCamera = false
 --------------
 --- renderTee
 --------------
-local renderTee = function(renderer: *SDL_Renderer, texture: *SDL_Texture, pos: Vec2d)
+local renderTee = function(renderer: *SDL_Renderer, texture: *SDL_Texture, pos: Vec2f)
   local x = pos.x
   local y = pos.y
   local TBodyParts = @record{ rect:SDL_Rect, frect:SDL_FRect, flip:cint }
@@ -114,8 +114,8 @@ end
 ------------------
 --- restartPlayer
 ------------------
-local restartPos = Vec2d{170, 500}    -- Initial pos
-local restartVel = Vec2d{0.0 , 0.0}   -- Initial vel
+local restartPos = Vec2f{170, 500}    -- Initial pos
+local restartVel = Vec2f{0.0 , 0.0}   -- Initial vel
 local restartFinish:integer = -1
 local restartBest:integer   = -1
 
@@ -220,7 +220,7 @@ end
 ----------------
 function Game:render()
    SDL_RenderClear(self.renderer)
-   local p = Vec2d{self.player.pos.x - self.camera.x, self.player.pos.y - self.camera.y}
+   local p = Vec2f{self.player.pos.x - self.camera.x, self.player.pos.y - self.camera.y}
    renderTee(self.renderer, self.player.texture, p)
    renderMap(self.renderer, self.map, self.camera)
    SDL_RenderPresent(self.renderer)
@@ -239,14 +239,14 @@ end
 ---------------
 --- getTileVec
 ---------------
-local getTileVec = function(map: Map, pos: Vec2d): uint8
+local getTileVec = function(map: Map, pos: Vec2f): uint8
   return getTile(map, math.floor(pos.x), math.floor(pos.y))
 end
 
 ---------------
 --- isSolid
 ---------------
-local isSolid = function (map: Map, pos:Vec2d): boolean
+local isSolid = function (map: Map, pos:Vec2f): boolean
   local val = getTile(map, math.ceil(pos.x), math.ceil(pos.y))
   return (val ~= air) and (val ~= start) and (val ~= finish)
 end
@@ -254,35 +254,35 @@ end
 -------------
 --- onGround
 -------------
-local onGround = function (map: Map, pos: Vec2d, size:Vec2d): boolean
-  local sz =  Vec2d{size.x * 0.5, size.y * 0.5}
-  local pt1 = Vec2d{pos.x - sz.x, pos.y + sz.y + 1}
-  local pt2 = Vec2d{pos.x + sz.x, pos.y + sz.y + 1}
+local onGround = function (map: Map, pos: Vec2f, size:Vec2f): boolean
+  local sz =  Vec2f{size.x * 0.5, size.y * 0.5}
+  local pt1 = Vec2f{pos.x - sz.x, pos.y + sz.y + 1}
+  local pt2 = Vec2f{pos.x + sz.x, pos.y + sz.y + 1}
   return isSolid(map, pt1) or isSolid(map, pt2)
 end
 
 ------------
 --- testBox
 ------------
-local testBox = function(map: Map, pos: Vec2d, size: Vec2d): boolean
-  local sz = Vec2d{size.x * 0.5, size.y * 0.5}
-  return isSolid(map, Vec2d{pos.x - sz.x, pos.y - sz.y}) or
-         isSolid(map, Vec2d{pos.x + sz.x, pos.y - sz.y}) or
-         isSolid(map, Vec2d{pos.x - sz.x, pos.y + sz.y}) or
-         isSolid(map, Vec2d{pos.x + sz.x, pos.y + sz.y})
+local testBox = function(map: Map, pos: Vec2f, size: Vec2f): boolean
+  local sz = Vec2f{size.x * 0.5, size.y * 0.5}
+  return isSolid(map, Vec2f{pos.x - sz.x, pos.y - sz.y}) or
+         isSolid(map, Vec2f{pos.x + sz.x, pos.y - sz.y}) or
+         isSolid(map, Vec2f{pos.x - sz.x, pos.y + sz.y}) or
+         isSolid(map, Vec2f{pos.x + sz.x, pos.y + sz.y})
 end
 
 ----------------
 --- vector2dLen
 ----------------
-local vector2dLen = function(vec:Vec2d): float32
+local vector2dLen = function(vec:Vec2f): float32
   return math.sqrt((vec.x * vec.x) + (vec.y * vec.y))
 end
 
 -----------------
 --- Game:moveBox
 -----------------
-function Game:moveBox(size: Vec2d): vector(Collision)
+function Game:moveBox(size: Vec2f): vector(Collision)
   local  distance = vector2dLen(self.player.vel)
   local  maximum = math.floor(distance)
   if distance < 0 then do return end end
@@ -290,13 +290,13 @@ function Game:moveBox(size: Vec2d): vector(Collision)
   local fraction = 1.0 / (maximum + 1)
   local result: vector(Collision)
   for i = 0, maximum do
-    local newPos = Vec2d{0.0, 0.0}
+    local newPos = Vec2f{0.0, 0.0}
     newPos.x = self.player.pos.x + (self.player.vel.x * fraction)
     newPos.y = self.player.pos.y + (self.player.vel.y * fraction)
 
     if testBox(self.map, newPos, size) then
       local hit = false
-      local pt:Vec2d = {self.player.pos.x, newPos.y}
+      local pt:Vec2f = {self.player.pos.x, newPos.y}
       if testBox(self.map, pt, size) then
         result:push(Collision.y)
         newPos.y = self.player.pos.y

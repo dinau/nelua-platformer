@@ -29,7 +29,7 @@ This repository has been inherited from
 
 Skin database [https://ddnet.org/skins](https://ddnet.org/skins)
 
-![alt](https://github.com/dinau/nelua-platformer/raw/main/img/game.png)
+![alt](https://github.com/dinau/nelua-platformer/raw/main/img/platformer-nelua-sdl2.gif)
 
 #### Support OS
 
@@ -165,11 +165,11 @@ have thankfully been just copied form [nelua-decl libraries project](https://git
 
 ---
 
-![ald](https://github.com/dinau/luajit-platformer/raw/main/img/game.png)
+![ald](https://github.com/dinau/luajit-platformer/raw/main/img/platformer-luajit-sdl2.gif)
 
 | Language             |          | Project                                                            |
 | -------------------: | :---:    | :----------------------------------------------------------------: |
-| **Nim**              | Compiler | [Nim-Platformer](https://github.com/dinau/nim-platformer)          |
+| **Nim**              | Compiler | [Nim-Platformer](https://github.com/dinau/nim-platformer) / [sdl3_nim](https://github.com/dinau/sdl3_nim)         |
 | **LuaJIT**           | Script   | [LuaJIT-Platformer](https://github.com/dinau/luajit-platformer)    |
 | **Nelua**            | Compiler | [NeLua-Platformer](https://github.com/dinau/nelua-platformer)      |
 

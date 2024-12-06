@@ -12,7 +12,7 @@ local Game = @record{
     inputs : [6]boolean,
 }
 
-local WindowSize  = Vec2d{1280, 720}
+local WindowSize  = Vec2f{1280, 720}
 
 -----------
 -- toInput

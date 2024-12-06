@@ -9,7 +9,7 @@ require"sdl2"
 
 global Debug = true
 
-global Vec2d = @record{
+global Vec2f = @record{
   x: float32, y: float32,
 }
 

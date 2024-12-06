@@ -13,8 +13,8 @@ Debug = true  -- for dprint()
 local Input     = @enum{none = 0,left = 1, right = 2, jump = 3 , restart = 4, quit = 5}
 local Player = @record{
     texture: *SDL_Texture,
-    pos: Vec2d,
-    vel: Vec2d
+    pos: Vec2f,
+    vel: Vec2f
 }
 local Map = @record{
     texture: *SDL_Texture,
@@ -30,13 +30,13 @@ local Game = @record{
 }
 
 local TilesPerRow <comptime> = 16
-local TileSize    = Vec2d{64, 64}
-local WindowSize  = Vec2d{1280, 720}
+local TileSize    = Vec2f{64, 64}
+local WindowSize  = Vec2f{1280, 720}
 
 --------------
 --- renderTee
 --------------
-local renderTee = function(renderer: *SDL_Renderer, texture: *SDL_Texture, pos: Vec2d)
+local renderTee = function(renderer: *SDL_Renderer, texture: *SDL_Texture, pos: Vec2f)
   local x = pos.x
   local y = pos.y
   local TBodyParts = @record{ rect:SDL_Rect, frect:SDL_FRect, flip:cint }
@@ -96,8 +96,8 @@ end
 ------------------
 --- restartPlayer
 ------------------
-local restartPos = Vec2d{170, 500}    -- Initial pos
-local restartVel = Vec2d{0.0 , 0.0}   -- Initial vel
+local restartPos = Vec2f{170, 500}    -- Initial pos
+local restartVel = Vec2f{0.0 , 0.0}   -- Initial vel
 
 function Player:restartPlayer()
     self.pos =  restartPos
@@ -176,7 +176,7 @@ end
 ----------------
 function Game:render()
    SDL_RenderClear(self.renderer)
-   local p = Vec2d{self.player.pos.x - self.camera.x, self.player.pos.y - self.camera.y}
+   local p = Vec2f{self.player.pos.x - self.camera.x, self.player.pos.y - self.camera.y}
    renderTee(self.renderer, self.player.texture, p)
    renderMap(self.renderer, self.map, self.camera)
    SDL_RenderPresent(self.renderer)
